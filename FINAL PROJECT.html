@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Fusion Feast</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        .section {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin: 10px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .menu-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .order-summary {
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #000000;
+            width: 300px;
+        }
+        /* New Styles */
+        .menu-container {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            max-width: 500px;
+            margin: auto;
+            color: #333;
+        }
+        body {
+            background-image: url('https://static.fanpage.it/wp-content/uploads/sites/22/2020/06/iStock-1155240408.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #fff;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        h1, h3, label {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <button class="button" onclick="showSection('home')">Home</button>
+        <button class="button" onclick="showSection('menu')">Menu</button>
+        <button class="button" onclick="showSection('order-summary')">Order Summary</button>
+    </nav>
+
+    <!-- Home Section -->
+    <div id="home" class="section active">
+        <h1>Welcome to The Fusion Feast</h1>
+        <img src="https://www.fusion6.com.au/wp-content/uploads/2021/04/Indian-Dishes-You-Need-to-Try.jpg" alt="Indian Dishes" class="menu-image">
+        <h2>Your Gateway to Delicious Fusion Dishes!</h2>
+        <p>Treat yourself to a delightful meal today!</p>
+    </div>
+
+    <!-- Menu Section -->
+    <div id="menu" class="section">
+        <div class="menu-container">
+            <h1>The Fusion Feast - Menu</h1>
+            <div id="category-buttons">
+                <button class="button" onclick="showItems('starters')">Starters</button>
+                <button class="button" onclick="showItems('main-course')">Main Course</button>
+                <button class="button" onclick="showItems('beverages')">Beverages</button>
+                <button class="button" onclick="showItems('desserts')">Desserts</button>
+            </div>
+
+            <div id="items-list" class="hidden">
+                <h3 id="category-title">Menu Items</h3>
+                <div id="items"></div>
+                <label for="item-quantity">Quantity: 
+                    <input type="number" id="item-quantity" min="1">
+                </label>
+                <button class="button" onclick="addToOrder()">Add to Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary Section -->
+    <div id="order-summary" class="section">
+        <h1>Your Order Summary</h1>
+        <div class="order-summary" id="summary-content">
+            <!-- Summary will be dynamically generated here -->
+        </div>
+        <p id="total-amount">Total: Rs. 0</p>
+        <button class="button" onclick="clearOrder()">Clear Order</button>
+    </div>
+
+    <script>
+        // Menu items and prices
+        const menus = {
+            'starters': {
+                'Paneer Pakoda': 'Rs. 50',
+                'French Fries': 'Rs. 40',
+                'Chicken Wings': 'Rs. 50',
+                'Veg Samosa': 'Rs. 25'
+            },
+            'main-course': {
+                'Chicken Biryani': 'Rs. 219',
+                'Butter Chicken': 'Rs. 189',
+                'Pizza': 'Rs. 99'
+            },
+            'beverages': {
+                'Lemonade': 'Rs. 25',
+                'Cold Coffee': 'Rs. 25',
+                'Soft Drink': 'Rs. 50'
+            },
+            'desserts': {
+                'Vanilla Ice-Cream': 'Rs. 35',
+                'Chocolate Ice-Cream': 'Rs. 50',
+                'Choco Lava Cake': 'Rs. 25'
+            }
+        };
+
+        // Order data storage
+        let orderTotal = 0;
+        let orderSummary = {};
+
+        // Function to display the appropriate section (Home, Menu, Order Summary)
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+
+            if (section === 'order-summary') {
+                loadOrderSummary();
+            }
+        }
+
+        // Function to display menu items based on the category
+        function showItems(category) {
+            const itemsList = document.getElementById('items-list');
+            const itemsContainer = document.getElementById('items');
+            const categoryTitle = document.getElementById('category-title');
+            itemsContainer.innerHTML = '';
+
+            if (menus[category]) {
+                itemsList.classList.remove('hidden');
+                categoryTitle.textContent = category.replace('-', ' ').toUpperCase();
+                const items = menus[category];
+                for (const item in items) {
+                    itemsContainer.innerHTML += `<div>
+                        <label>
+                            <input type="radio" name="item" value="${item}">
+                            ${item}: ${items[item]}
+                        </label>
+                    </div>`;
+                }
+            }
+        }
+
+        // Function to add items to the order
+        function addToOrder() {
+            const selectedItem = document.querySelector('input[name="item"]:checked');
+            const quantity = document.getElementById('item-quantity').value;
+
+            if (selectedItem && quantity > 0) {
+                const item = selectedItem.value;
+                const price = menus[Object.keys(menus).find(cat => menus[cat][item])][item];
+                const totalPrice = parseInt(price.replace('Rs.', '')) * quantity;
+
+                if (orderSummary[item]) {
+                    orderSummary[item].quantity += parseInt(quantity);
+                    orderSummary[item].totalPrice += totalPrice;
+                } else {
+                    orderSummary[item] = {
+                        quantity: parseInt(quantity),
+                        totalPrice: totalPrice
+                    };
+                }
+
+                orderTotal += totalPrice;
+                alert(`${quantity} ${item}(s) added to your order.`);
+            } else {
+                alert('Please select an item and enter a valid quantity.');
+            }
+        }
+
+        // Function to load the order summary and display it
+        function loadOrderSummary() {
+            const summaryContent = document.getElementById('summary-content');
+            summaryContent.innerHTML = '';
+
+            if (Object.keys(orderSummary).length === 0) {
+                summaryContent.innerHTML = '<p>No items in the order.</p>';
+            } else {
+                for (const item in orderSummary) {
+                    const { quantity, totalPrice } = orderSummary[item];
+                    summaryContent.innerHTML += `<div>${item}: ${quantity} x Rs. ${totalPrice / quantity} = Rs. ${totalPrice}</div>`;
+                }
+                document.getElementById('total-amount').textContent = `Total: Rs. ${orderTotal}`;
+            }
+        }
+
+        // Function to clear the order
+        function clearOrder() {
+            orderSummary = {};
+            orderTotal = 0;
+            loadOrderSummary();
+            alert('Order cleared.');
+        }
+    </script>
+</body>
+</html>
